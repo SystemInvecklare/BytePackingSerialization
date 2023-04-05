@@ -1,11 +1,12 @@
 package net.pointlessgames.libs.bps;
 
+import net.pointlessgames.libs.bps.functional.UnsafeBiConsumer;
+import net.pointlessgames.libs.bps.functional.UnsafeFunction;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
-import net.pointlessgames.libs.bps.functional.UnsafeBiConsumer;
-import net.pointlessgames.libs.bps.functional.UnsafeFunction;
+import java.util.Objects;
 
 public class DynamicArray {
 	public static final ISerializer<DynamicArray> SERIALIZER = new ISerializer<DynamicArray>() {
@@ -107,6 +108,20 @@ public class DynamicArray {
 	@SuppressWarnings("unchecked")
 	public <T> IObjectReference<T> get(Class<T> type, int index) {
 		return (IObjectReference<T>) getObject(index);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if(obj instanceof DynamicArray) {
+			DynamicArray other = (DynamicArray) obj;
+			return this.values.equals(other.values);
+		}
+		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		return values.hashCode();
 	}
 
 	private static final ISerializer<IHolder> HOLDER_SERIALIZER = new ISerializer<IHolder>() {
@@ -231,14 +246,14 @@ public class DynamicArray {
 		
 		HolderType getType();
 	}
-	
+
 	private static class IntHolder implements IHolder {
 		private final int value;
 
 		public IntHolder(int value) {
 			this.value = value;
 		}
-		
+
 		@Override
 		public int getInt() {
 			return value;
@@ -248,131 +263,235 @@ public class DynamicArray {
 		public HolderType getType() {
 			return INT;
 		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if(obj instanceof IntHolder) {
+				return this.value == ((IntHolder) obj).value;
+			}
+			return false;
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hashCode(value);
+		}
 	}
-	
+
 	private static class BooleanHolder implements IHolder {
 		private final boolean value;
 
 		public BooleanHolder(boolean value) {
 			this.value = value;
 		}
-		
+
 		@Override
 		public boolean getBoolean() {
 			return value;
 		}
-		
+
 		@Override
 		public HolderType getType() {
 			return BOOLEAN;
 		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if(obj instanceof BooleanHolder) {
+				return this.value == ((BooleanHolder) obj).value;
+			}
+			return false;
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hashCode(value);
+		}
 	}
-	
+
 	private static class FloatHolder implements IHolder {
 		private final float value;
 
 		public FloatHolder(float value) {
 			this.value = value;
 		}
-		
+
 		@Override
 		public float getFloat() {
 			return value;
 		}
-		
+
 		@Override
 		public HolderType getType() {
 			return FLOAT;
 		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if(obj instanceof FloatHolder) {
+				return this.value == ((FloatHolder) obj).value;
+			}
+			return false;
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hashCode(value);
+		}
 	}
-	
+
 	private static class LongHolder implements IHolder {
 		private final long value;
 
 		public LongHolder(long value) {
 			this.value = value;
 		}
-		
+
 		@Override
 		public long getLong() {
 			return value;
 		}
-		
+
 		@Override
 		public HolderType getType() {
 			return LONG;
 		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if(obj instanceof LongHolder) {
+				return this.value == ((LongHolder) obj).value;
+			}
+			return false;
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hashCode(value);
+		}
 	}
-	
+
 	private static class DoubleHolder implements IHolder {
 		private final double value;
 
 		public DoubleHolder(double value) {
 			this.value = value;
 		}
-		
+
 		@Override
 		public double getDouble() {
 			return value;
 		}
-		
+
 		@Override
 		public HolderType getType() {
 			return DOUBLE;
 		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if(obj instanceof DoubleHolder) {
+				return this.value == ((DoubleHolder) obj).value;
+			}
+			return false;
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hashCode(value);
+		}
 	}
-	
+
 	private static class ShortHolder implements IHolder {
 		private final short value;
 
 		public ShortHolder(short value) {
 			this.value = value;
 		}
-		
+
 		@Override
 		public short getShort() {
 			return value;
 		}
-		
+
 		@Override
 		public HolderType getType() {
 			return SHORT;
 		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if(obj instanceof ShortHolder) {
+				return this.value == ((ShortHolder) obj).value;
+			}
+			return false;
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hashCode(value);
+		}
 	}
-	
+
 	private static class CharHolder implements IHolder {
 		private final char value;
 
 		public CharHolder(char value) {
 			this.value = value;
 		}
-		
+
 		@Override
 		public char getChar() {
 			return value;
 		}
-		
+
 		@Override
 		public HolderType getType() {
 			return CHAR;
 		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if(obj instanceof CharHolder) {
+				return this.value == ((CharHolder) obj).value;
+			}
+			return false;
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hashCode(value);
+		}
 	}
-	
+
 	private static class StringHolder implements IHolder {
 		private final String value;
 
 		public StringHolder(String value) {
 			this.value = value;
 		}
-		
+
 		@Override
 		public String getString() {
 			return value;
 		}
-		
+
 		@Override
 		public HolderType getType() {
 			return STRING;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if(obj instanceof StringHolder) {
+				return Objects.equals(this.value, ((StringHolder) obj).value);
+			}
+			return false;
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hashCode(value);
 		}
 	}
 	
@@ -403,6 +522,19 @@ public class DynamicArray {
 		@Override
 		public HolderType getType() {
 			return OBJECT;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if(obj instanceof ObjectHolder) {
+				return Objects.equals(this.value, ((ObjectHolder) obj).value);
+			}
+			return false;
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hashCode(value);
 		}
 	}
 }
