@@ -22,6 +22,10 @@ public class SimplePointer<T> {
 	
 	private SimplePointer() {
 	}
+
+	public SimplePointer(IObjectReference<T> objectReference) {
+		objectReference.get(this::init);
+	}
 	
 	public SimplePointer(T value) {
 		init(value);
