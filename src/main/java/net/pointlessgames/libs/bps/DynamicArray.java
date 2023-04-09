@@ -500,11 +500,15 @@ public class DynamicArray {
 		private final ObjectReference<Object> reference = new ObjectReference<>();
 
 		public ObjectHolder(Object value) {
-			this.value = value;
+			setValue(value);
+		}
+
+		private ObjectHolder() {
+			// For deserialization
 		}
 		
 		public static ObjectHolder load(IDeserializationContext context) throws IOException {
-			ObjectHolder holder = new ObjectHolder(null);
+			ObjectHolder holder = new ObjectHolder();
 			context.readObject(Object.class, holder::setValue);
 			return holder;
 		}
