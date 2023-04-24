@@ -24,7 +24,27 @@ public class SerializationContext implements ISerializationContext {
 	
 	@Override
 	public void writeInt(int i) throws IOException {
-		out.writeInt(i);
+		if(i <= 63 && i >= -64) {
+			writeByte((byte) (i & 0b01111111));
+		} else if(i <= 8191 && i >= -8192) {
+			writeByte((byte) (((i >> 8) & 0b00111111) | 0b10000000));
+			writeByte((byte) i);
+		} else if(i <= 1048575 && i >= -1048576) {
+			writeByte((byte) (((i >> (2*8)) & 0b00011111) | 0b11000000));
+			writeByte((byte) (i >> 8));
+			writeByte((byte) i);
+		} else if(i <= 134217727 && i >= -134217728) {
+			writeByte((byte) (((i >> (3*8)) & 0b00001111) | 0b11100000));
+			writeByte((byte) (i >> (2*8)));
+			writeByte((byte) (i >> 8));
+			writeByte((byte) i);
+		} else {
+			writeByte((byte) (0b11110000));
+			writeByte((byte) (i >> (3*8)));
+			writeByte((byte) (i >> (2*8)));
+			writeByte((byte) (i >> 8));
+			writeByte((byte) i);
+		}
 	}
 	
 	@Override
