@@ -84,6 +84,7 @@ public class SerializationContext implements ISerializationContext {
 
 	@Override
 	public <T> void write(ISerializer<T> serializer, T object) throws IOException {
+		writeInt(serializer.getVersion());
 		serializer.serialize(this, object);
 	}
 	

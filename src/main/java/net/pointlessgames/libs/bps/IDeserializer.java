@@ -5,7 +5,7 @@ import java.io.IOException;
 public interface IDeserializer<T> {
 	T deserialize(IDeserializationContext context) throws IOException;
 	
-	default short getVersion() {
+	default int getVersion() {
 		return 0;
 	}
 }

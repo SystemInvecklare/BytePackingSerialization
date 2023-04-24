@@ -111,6 +111,16 @@ public class DeserializationContext implements IDeserializationContext {
 
 	@Override
 	public <T> T read(IDeserializer<T> serializer) throws IOException {
+		int serializerVersion = readInt();
+		if(serializer.getVersion() != serializerVersion) {
+			if(serializer instanceof IMultiVersionDeserializer) {
+				IDeserializer<T> correctVersionSerializer = ((IMultiVersionDeserializer<T>) serializer).getDeserializer(serializerVersion);
+				if(correctVersionSerializer != null) {
+					return correctVersionSerializer.deserialize(this);
+				}
+			}
+			throw new IOException("Can not deserialize object serialization version "+serializerVersion);
+		}
 		return serializer.deserialize(this);
 	}
 	
