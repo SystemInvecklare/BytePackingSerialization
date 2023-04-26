@@ -19,7 +19,7 @@ import java.util.Optional;
     }
 
     public static <T> ISerializer<T> multiVersionDeserializer(ISerializer<T> core, IDeserializer<T> deserializer) {
-        return new MultiVersionDeserializer(core, deserializer);
+        return new MultiVersionDeserializer<T>(core, deserializer);
     }
 
     private static class MultiVersionDeserializer<T> implements IMultiVersionDeserializer<T>, ISerializer<T> {

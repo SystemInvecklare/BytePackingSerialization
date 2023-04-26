@@ -114,6 +114,7 @@ public class DeserializationContext implements IDeserializationContext {
 		int serializerVersion = readInt();
 		if(serializer.getVersion() != serializerVersion) {
 			if(serializer instanceof IMultiVersionDeserializer) {
+				@SuppressWarnings("unchecked")
 				IDeserializer<T> correctVersionSerializer = ((IMultiVersionDeserializer<T>) serializer).getDeserializer(serializerVersion);
 				if(correctVersionSerializer != null) {
 					return correctVersionSerializer.deserialize(this);
