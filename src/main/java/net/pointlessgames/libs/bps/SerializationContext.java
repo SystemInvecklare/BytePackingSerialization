@@ -1,19 +1,25 @@
 package net.pointlessgames.libs.bps;
 
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 
+import net.pointlessgames.libs.bps.data.IDataWriter;
+import net.pointlessgames.libs.bps.data.OutputStreamDataWriter;
+
 public class SerializationContext implements ISerializationContext {
-	private final DataOutputStream out;
+	private final IDataWriter out;
 	private final ISerializer<Object> objectSerializer;
 	private final Map<Object, Integer> objectMap = new HashMap<Object, Integer>();
 	private int nextId = 0;
 	
 	public SerializationContext(OutputStream stream, ISerializer<Object> objectSerializer) {
-		this.out = new DataOutputStream(stream);
+		this(new OutputStreamDataWriter(stream), objectSerializer);
+	}
+	
+	public SerializationContext(IDataWriter out, ISerializer<Object> objectSerializer) {
+		this.out = out;
 		this.objectSerializer = objectSerializer;
 	}
 	

@@ -1,6 +1,5 @@
 package net.pointlessgames.libs.bps;
 
-import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -9,19 +8,26 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import net.pointlessgames.libs.bps.data.IDataReader;
+import net.pointlessgames.libs.bps.data.InputStreamDataReader;
+
 public class DeserializationContext implements IDeserializationContext {
-	private final DataInputStream dis;
+	private final IDataReader in;
 	private final IDeserializer<Object> objectDeserializer;
 	private final Map<Integer, Object> objectMap = new HashMap<Integer, Object>();
 	
 	public DeserializationContext(InputStream in, IDeserializer<Object> objectDeserializer) {
-		this.dis = new DataInputStream(in);
+		this(new InputStreamDataReader(in), objectDeserializer);
+	}
+	
+	public DeserializationContext(IDataReader in, IDeserializer<Object> objectDeserializer) {
+		this.in = in;
 		this.objectDeserializer = objectDeserializer;
 	}
 
 	@Override
 	public float readFloat() throws IOException {
-		return dis.readFloat();
+		return in.readFloat();
 	}
 
 	private static int toInt(byte b) {
@@ -76,37 +82,37 @@ public class DeserializationContext implements IDeserializationContext {
 
 	@Override
 	public boolean readBoolean() throws IOException {
-		return dis.readBoolean();
+		return in.readBoolean();
 	}
 
 	@Override
 	public double readDouble() throws IOException {
-		return dis.readDouble();
+		return in.readDouble();
 	}
 
 	@Override
 	public String readString() throws IOException {
-		return dis.readUTF();
+		return in.readUTF();
 	}
 
 	@Override
 	public short readShort() throws IOException {
-		return dis.readShort();
+		return in.readShort();
 	}
 
 	@Override
 	public long readLong() throws IOException {
-		return dis.readLong();
+		return in.readLong();
 	}
 
 	@Override
 	public char readChar() throws IOException {
-		return dis.readChar();
+		return in.readChar();
 	}
 	
 	@Override
 	public byte readByte() throws IOException {
-		return dis.readByte();
+		return in.readByte();
 	}
 
 	@Override
