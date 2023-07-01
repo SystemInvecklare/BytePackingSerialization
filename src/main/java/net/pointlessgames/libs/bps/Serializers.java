@@ -122,6 +122,123 @@ public class Serializers {
 		}
 	};
 	
+	
+	public static final ISerializer<int[]> INT_ARRAY = new ISerializer<int[]>() {
+		@Override
+		public int[] deserialize(IDeserializationContext context) throws IOException {
+			return context.readIntArray();
+		}
+		
+		@Override
+		public void serialize(ISerializationContext context, int[] object) throws IOException {
+			context.writeIntArray(object);
+		}
+	};
+
+
+	public static final ISerializer<byte[]> BYTE_ARRAY = new ISerializer<byte[]>() {
+		@Override
+		public byte[] deserialize(IDeserializationContext context) throws IOException {
+			return context.readByteArray();
+		}
+		
+		@Override
+		public void serialize(ISerializationContext context, byte[] object) throws IOException {
+			context.writeByteArray(object);
+		}
+	};
+
+
+	public static final ISerializer<short[]> SHORT_ARRAY = new ISerializer<short[]>() {
+		@Override
+		public short[] deserialize(IDeserializationContext context) throws IOException {
+			return context.readShortArray();
+		}
+		
+		@Override
+		public void serialize(ISerializationContext context, short[] object) throws IOException {
+			context.writeShortArray(object);
+		}
+	};
+
+
+	public static final ISerializer<long[]> LONG_ARRAY = new ISerializer<long[]>() {
+		@Override
+		public long[] deserialize(IDeserializationContext context) throws IOException {
+			return context.readLongArray();
+		}
+		
+		@Override
+		public void serialize(ISerializationContext context, long[] object) throws IOException {
+			context.writeLongArray(object);
+		}
+	};
+
+
+	public static final ISerializer<float[]> FLOAT_ARRAY = new ISerializer<float[]>() {
+		@Override
+		public float[] deserialize(IDeserializationContext context) throws IOException {
+			return context.readFloatArray();
+		}
+		
+		@Override
+		public void serialize(ISerializationContext context, float[] object) throws IOException {
+			context.writeFloatArray(object);
+		}
+	};
+
+
+	public static final ISerializer<double[]> DOUBLE_ARRAY = new ISerializer<double[]>() {
+		@Override
+		public double[] deserialize(IDeserializationContext context) throws IOException {
+			return context.readDoubleArray();
+		}
+		
+		@Override
+		public void serialize(ISerializationContext context, double[] object) throws IOException {
+			context.writeDoubleArray(object);
+		}
+	};
+
+
+	public static final ISerializer<boolean[]> BOOLEAN_ARRAY = new ISerializer<boolean[]>() {
+		@Override
+		public boolean[] deserialize(IDeserializationContext context) throws IOException {
+			return context.readBooleanArray();
+		}
+		
+		@Override
+		public void serialize(ISerializationContext context, boolean[] object) throws IOException {
+			context.writeBooleanArray(object);
+		}
+	};
+
+
+	public static final ISerializer<char[]> CHAR_ARRAY = new ISerializer<char[]>() {
+		@Override
+		public char[] deserialize(IDeserializationContext context) throws IOException {
+			return context.readCharArray();
+		}
+		
+		@Override
+		public void serialize(ISerializationContext context, char[] object) throws IOException {
+			context.writeCharArray(object);
+		}
+	};
+
+
+	public static final ISerializer<String[]> STRING_ARRAY = new ISerializer<String[]>() {
+		@Override
+		public String[] deserialize(IDeserializationContext context) throws IOException {
+			return context.readStringArray();
+		}
+		
+		@Override
+		public void serialize(ISerializationContext context, String[] object) throws IOException {
+			context.writeStringArray(object);
+		}
+	};
+	
 
 	public static <T> ISerializer<T> empty(Supplier<T> factory) {
 		return new ISerializer<T>() {

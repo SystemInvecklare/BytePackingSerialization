@@ -44,4 +44,81 @@ public interface ISerializationContext {
 			write(serializer, optional.get());
 		}
 	}
+	
+	default void writeFloatArray(float[] array) throws IOException {
+		writeInt(array.length);
+		for(float val : array) {
+			writeFloat(val);
+		}
+	}
+	
+	default void writeIntArray(int[] array) throws IOException {
+		writeInt(array.length);
+		for(int val : array) {
+			writeInt(val);
+		}
+	}
+	
+	default void writeBooleanArray(boolean[] array) throws IOException {
+		writeInt(array.length);
+		for(boolean val : array) {
+			writeBoolean(val);
+		}
+	}
+	
+	default void writeDoubleArray(double[] array) throws IOException {
+		writeInt(array.length);
+		for(double val : array) {
+			writeDouble(val);
+		}
+	}
+	
+	default void writeStringArray(String[] array) throws IOException {
+		writeInt(array.length);
+		for(String val : array) {
+			writeString(val);
+		}
+	}
+	
+	default void writeShortArray(short[] array) throws IOException {
+		writeInt(array.length);
+		for(short val : array) {
+			writeShort(val);
+		}
+	}
+	
+	default void writeLongArray(long[] array) throws IOException {
+		writeInt(array.length);
+		for(long val : array) {
+			writeLong(val);
+		}
+	}
+	
+	default void writeCharArray(char[] array) throws IOException {
+		writeInt(array.length);
+		for(char val : array) {
+			writeChar(val);
+		}
+	}
+	
+	default void writeByteArray(byte[] array) throws IOException {
+		writeInt(array.length);
+		for(byte val : array) {
+			writeByte(val);
+		}
+	}
+	
+	default <T> void writeArray(ISerializer<T> elementSerializer, T[] array) throws IOException {
+		writeInt(array.length);
+		for(T val : array) {
+			write(elementSerializer, val);
+		}
+	}
+	
+	default <T> void writeObjectArray(T[] array) throws IOException {
+		writeInt(array.length);
+		for(T val : array) {
+			writeObject(val);
+		}
+	}
 }

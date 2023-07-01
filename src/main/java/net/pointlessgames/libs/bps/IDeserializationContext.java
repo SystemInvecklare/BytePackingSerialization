@@ -1,6 +1,7 @@
 package net.pointlessgames.libs.bps;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -58,5 +59,96 @@ public interface IDeserializationContext {
 		ObjectReference<T> reference = new ObjectReference<>();
 		readObject(type, reference::setValue);
 		return reference;
+	}
+	
+	default float[] readFloatArray() throws IOException {
+		float[] array = new float[readInt()];
+		for(int i = 0; i < array.length; ++i) {
+			array[i] = readFloat();
+		}
+		return array;
+	}
+	
+	default int[] readIntArray() throws IOException {
+		int[] array = new int[readInt()];
+		for(int i = 0; i < array.length; ++i) {
+			array[i] = readInt();
+		}
+		return array;
+	}
+
+	default boolean[] readBooleanArray() throws IOException {
+		boolean[] array = new boolean[readInt()];
+		for(int i = 0; i < array.length; ++i) {
+			array[i] = readBoolean();
+		}
+		return array;
+	}
+
+	default double[] readDoubleArray() throws IOException {
+		double[] array = new double[readInt()];
+		for(int i = 0; i < array.length; ++i) {
+			array[i] = readDouble();
+		}
+		return array;
+	}
+
+	default String[] readStringArray() throws IOException {
+		String[] array = new String[readInt()];
+		for(int i = 0; i < array.length; ++i) {
+			array[i] = readString();
+		}
+		return array;
+	}
+
+	default short[] readShortArray() throws IOException {
+		short[] array = new short[readInt()];
+		for(int i = 0; i < array.length; ++i) {
+			array[i] = readShort();
+		}
+		return array;
+	}
+
+	default long[] readLongArray() throws IOException {
+		long[] array = new long[readInt()];
+		for(int i = 0; i < array.length; ++i) {
+			array[i] = readLong();
+		}
+		return array;
+	}
+
+	default char[] readCharArray() throws IOException {
+		char[] array = new char[readInt()];
+		for(int i = 0; i < array.length; ++i) {
+			array[i] = readChar();
+		}
+		return array;
+	}
+
+	default byte[] readByteArray() throws IOException {
+		byte[] array = new byte[readInt()];
+		for(int i = 0; i < array.length; ++i) {
+			array[i] = readByte();
+		}
+		return array;
+	}
+
+	default <T> T[] readArray(IDeserializer<T> elementDeserializer, Class<T> componentType) throws IOException {
+		@SuppressWarnings("unchecked")
+		T[] array = (T[]) Array.newInstance(componentType, readInt());
+		for(int i = 0; i < array.length; ++i) {
+			array[i] = read(elementDeserializer);
+		}
+		return array;
+	}
+
+	default <T> T[] readObjectArray(Class<T> componentType) throws IOException {
+		@SuppressWarnings("unchecked")
+		T[] array = (T[]) Array.newInstance(componentType, readInt());
+		for(int i = 0; i < array.length; ++i) {
+			final int finalI = i;
+			readObject(componentType, v -> array[finalI] = v);
+		}
+		return array;
 	}
 }
