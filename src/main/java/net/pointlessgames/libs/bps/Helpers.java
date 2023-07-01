@@ -31,17 +31,30 @@ import java.util.Optional;
         public MultiVersionDeserializer(ISerializer<T> core, IDeserializer<T> deserializer) {
             this.core = core;
             if(core instanceof IMultiVersionDeserializer) {
-                this.chained = Optional.of((IMultiVersionDeserializer<T>) core);
+                IMultiVersionDeserializer<T> chainedCore = (IMultiVersionDeserializer<T>) core;
+				this.chained = Optional.of(chainedCore);
+				if(chainedCore.getDeserializer(deserializer.getVersion()) != null) {
+					throw duplicateDeserializerException(core, deserializer);
+				}
             } else {
                 this.chained = Optional.empty();
+				if(core.getVersion() == deserializer.getVersion()) {
+					throw duplicateDeserializerException(core, deserializer);
+				}
             }
             this.deserializer = deserializer;
+        }
+        
+        private static <T> IllegalArgumentException duplicateDeserializerException(ISerializer<T> core, IDeserializer<T> deserializer) {
+        	return new IllegalArgumentException("Serializer "+core+" already has deserializer of version "+deserializer.getVersion());
         }
 
         @Override
         public IDeserializer<T> getDeserializer(int version) {
             if(version == deserializer.getVersion()) {
                 return deserializer;
+            } else if(version == core.getVersion()) {
+            	return core;
             } else if(chained.isPresent()) {
                 return chained.get().getDeserializer(version);
             } else {
