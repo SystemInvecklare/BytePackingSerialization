@@ -1,11 +1,11 @@
 package net.pointlessgames.libs.bps;
 
-import net.pointlessgames.libs.bps.functional.HashMapPairing;
-import net.pointlessgames.libs.bps.functional.IPairing;
-
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+
+import net.pointlessgames.libs.bps.functional.HashMapPairing;
+import net.pointlessgames.libs.bps.functional.IPairing;
 
 public class TypeRegistry implements ISerializer<Object> {
 	private static class NullClass {
@@ -45,7 +45,16 @@ public class TypeRegistry implements ISerializer<Object> {
 	public Object deserialize(IDeserializationContext context) throws IOException {
 		Class<?> type = getType(context.readInt());
 		ISerializer<?> serializer = getSerializer(type);
-		return context.read(serializer);
+		Object value = context.read(serializer);
+		if(value == null && type != NullClass.class) {
+			// Typically, object-deserializers are not permitted to deserialize to null.
+			// If the original object serialized was actually null, then we would not 
+			// have found the correct serializer in the first place (since we would not
+			// have known the type), thus, null from an object-deserializer always
+			// indicates an error.
+			throw new IOException(serializer.toString() + " for type "+type.getName()+" deserialized to null!");
+		}
+		return value;
 	}
 
 	@SuppressWarnings("unchecked")
