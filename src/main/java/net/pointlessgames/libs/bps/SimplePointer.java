@@ -17,6 +17,22 @@ public class SimplePointer<T> {
 		}
 	};
 	
+	public static <T> ISerializer<SimplePointer<T>> typedSerializer(Class<T> objectType) {
+		return new ISerializer<SimplePointer<T>>() {
+			@Override
+			public SimplePointer<T> deserialize(IDeserializationContext context) throws IOException {
+				SimplePointer<T> pointer = new SimplePointer<>();
+				context.readObject(objectType, pointer::init);
+				return pointer;
+			}
+
+			@Override
+			public void serialize(ISerializationContext context, SimplePointer<T> object) throws IOException {
+				context.writeObject(object.value);
+			}
+		};
+	}
+	
 	private T value;
 	private boolean initialized = false;
 	
