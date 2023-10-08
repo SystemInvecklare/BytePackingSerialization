@@ -270,7 +270,29 @@ public class Serializers {
 			}
 		};
 	}
+	
+	public static <T> ISerializer<T> singleton(T singletonObject) {
+		return singleton(singletonObject, 0);
+	}
+	
+	public static <T> ISerializer<T> singleton(T singletonObject, int version) {
+		return new ISerializer<T>() {
+			@Override
+			public T deserialize(IDeserializationContext context) throws IOException {
+				return singletonObject;
+			}
 
+			@Override
+			public void serialize(ISerializationContext context, T object) throws IOException {
+			}
+			
+			@Override
+			public int getVersion() {
+				return version;
+			}
+		};
+	}
+ 
 	public static <F, T> ISerializer<T> map(ISerializer<F> serializer, Function<F, T> mapping, Function<T, F> comapping) {
 		return new ISerializer<T>() {
 			@Override

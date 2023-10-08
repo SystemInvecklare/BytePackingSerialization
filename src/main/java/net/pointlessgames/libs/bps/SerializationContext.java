@@ -7,6 +7,9 @@ import java.util.Map;
 
 import net.pointlessgames.libs.bps.data.IDataWriter;
 import net.pointlessgames.libs.bps.data.OutputStreamDataWriter;
+import net.pointlessgames.libs.bps.nested.IInnerType;
+import net.pointlessgames.libs.bps.nested.IOuterType;
+import net.pointlessgames.libs.bps.nested.InnerTypeMarker;
 
 public class SerializationContext implements ISerializationContext {
 	private final IDataWriter out;
@@ -102,7 +105,14 @@ public class SerializationContext implements ISerializationContext {
 			id = nextId++;
 			objectMap.put(object, id);
 			writeInt(id);
-			write(objectSerializer, object);
+			if(object instanceof IInnerType) {
+				IOuterType outerType = ((IInnerType) object).getOuterObject();
+				write(objectSerializer, InnerTypeMarker.INSTANCE);
+				writeObject(outerType);
+				outerType.serializeInner(this, (IInnerType) object);
+			} else {
+				write(objectSerializer, object);
+			}
 		} else {
 			writeInt(id);
 		}

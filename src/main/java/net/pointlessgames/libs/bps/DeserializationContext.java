@@ -10,6 +10,10 @@ import java.util.function.Consumer;
 
 import net.pointlessgames.libs.bps.data.IDataReader;
 import net.pointlessgames.libs.bps.data.InputStreamDataReader;
+import net.pointlessgames.libs.bps.functional.UnsafeConsumer;
+import net.pointlessgames.libs.bps.nested.IInnerType;
+import net.pointlessgames.libs.bps.nested.IOuterType;
+import net.pointlessgames.libs.bps.nested.InnerTypeMarker;
 
 public class DeserializationContext implements IDeserializationContext {
 	private final IDataReader in;
@@ -141,9 +145,21 @@ public class DeserializationContext implements IDeserializationContext {
 			UnfinishedObject<T> unfinishedObject = new UnfinishedObject<>();
 			objectMap.put(id, unfinishedObject);
 			object = read(objectDeserializer);
-			objectMap.put(id, object);
-			unfinishedObject.onFinished((T) object);
-			consumer.accept((T) object);
+			if(object == InnerTypeMarker.INSTANCE) {
+				readObject(IOuterType.class, new UnsafeConsumer<IOuterType, IOException>() {
+					@Override
+					public void accept(IOuterType outer) throws IOException {
+						IInnerType inner = outer.deserializeInner(DeserializationContext.this);
+						objectMap.put(id, inner);
+						unfinishedObject.onFinished((T) inner);
+						consumer.accept((T) inner);
+					}
+				}.runtimeException(IOException.class));
+			} else {
+				objectMap.put(id, object);
+				unfinishedObject.onFinished((T) object);
+				consumer.accept((T) object);
+			}
 		} else if(object instanceof UnfinishedObject) {
 			((UnfinishedObject<T>) object).consumers.add(consumer);
 		} else {

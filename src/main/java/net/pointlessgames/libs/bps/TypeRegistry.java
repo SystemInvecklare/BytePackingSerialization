@@ -1,11 +1,13 @@
 package net.pointlessgames.libs.bps;
 
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.Map;
 
 import net.pointlessgames.libs.bps.functional.HashMapPairing;
 import net.pointlessgames.libs.bps.functional.IPairing;
+import net.pointlessgames.libs.bps.nested.InnerTypeMarker;
 
 public class TypeRegistry implements ISerializer<Object> {
 	private static class NullClass {
@@ -27,11 +29,16 @@ public class TypeRegistry implements ISerializer<Object> {
 		});
 	}
 	
+	public void registerInnerType(int id) {
+		register(id, InnerTypeMarker.class, Serializers.singleton(InnerTypeMarker.INSTANCE));
+	}
+	
 	public <T> void register(int id, Class<T> type, ISerializer<T> serializer) {
+		assertNotDoNotSerialize(type);
 		typeSerializers.put(type, serializer);
 		classIds.add(id, type);
 	}
-	
+
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	public void serialize(ISerializationContext context, Object object) throws IOException {
@@ -61,6 +68,7 @@ public class TypeRegistry implements ISerializer<Object> {
 	private <T> ISerializer<T> getSerializer(Class<T> type) {
 		ISerializer<T> serializer = (ISerializer<T>) typeSerializers.get(type);
 		if(serializer == null) {
+			assertNotDoNotSerialize(type);
 			throw new IllegalArgumentException("No serializer registered for type "+type.getName());
 		}
 		return serializer;
@@ -80,5 +88,33 @@ public class TypeRegistry implements ISerializer<Object> {
 			throw new IllegalArgumentException("No class registered for id "+id);
 		}
 		return type;
+	}
+	
+	private static void assertNotDoNotSerialize(Class<?> type) {
+		DoNotSerialize doNotSerialize = getAnnotationInherited(type, DoNotSerialize.class);
+		if(doNotSerialize != null && doNotSerialize.value()) {
+			throw new IllegalArgumentException("The type "+type.getName()+" is marked as @"+DoNotSerialize.class.getSimpleName()+" (possibly inherited), indicating it should not be serialized. If a superclass or an interface has this annotation but you wish to override it for this type, annotate it with @DoNotSerialize(false)");
+		}
+	}
+
+	private static <A extends Annotation> A getAnnotationInherited(Class<?> type, Class<A> annotationClass) {
+		A annotation = type.getAnnotation(annotationClass);
+		if(annotation != null) {
+			return annotation;
+		}
+		Class<?> superClass = type.getSuperclass();
+		if(superClass != null) {
+			annotation = getAnnotationInherited(superClass, annotationClass);
+			if(annotation != null) {
+				return annotation;
+			}
+		}
+		for(Class<?> iface : type.getInterfaces()) {
+			annotation = getAnnotationInherited(iface, annotationClass);
+			if(annotation != null) {
+				return annotation;
+			}
+		}
+		return null;
 	}
 }
