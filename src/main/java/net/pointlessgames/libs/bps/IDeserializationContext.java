@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 
+import net.pointlessgames.libs.bps.extracontext.IDependentDeserializer;
+
 public interface IDeserializationContext {
 	float readFloat() throws IOException;
 	int readInt() throws IOException;
@@ -18,6 +20,7 @@ public interface IDeserializationContext {
 	byte readByte() throws IOException;
 	<T> T read(IDeserializer<T> deserializer) throws IOException;
 	<T> void readObject(Class<T> type, Consumer<T> consumer) throws IOException;
+	<T, C> T readDependent(IDependentDeserializer<T, C> deserializer, C extraContext) throws IOException;
 	
 	default <T, L extends List<? super T>> L readObjectList(Class<T> elementType, L list) throws IOException {
 		int listSize = readInt();

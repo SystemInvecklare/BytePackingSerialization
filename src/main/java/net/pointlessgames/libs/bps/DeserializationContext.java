@@ -10,6 +10,8 @@ import java.util.function.Consumer;
 
 import net.pointlessgames.libs.bps.data.IDataReader;
 import net.pointlessgames.libs.bps.data.InputStreamDataReader;
+import net.pointlessgames.libs.bps.extracontext.IDependentDeserializer;
+import net.pointlessgames.libs.bps.extracontext.IMultiVersionDependentDeserializer;
 import net.pointlessgames.libs.bps.functional.UnsafeConsumer;
 import net.pointlessgames.libs.bps.nested.IInnerType;
 import net.pointlessgames.libs.bps.nested.IOuterType;
@@ -120,19 +122,35 @@ public class DeserializationContext implements IDeserializationContext {
 	}
 
 	@Override
-	public <T> T read(IDeserializer<T> serializer) throws IOException {
+	public <T> T read(IDeserializer<T> deserializer) throws IOException {
 		int serializerVersion = readInt();
-		if(serializer.getVersion() != serializerVersion) {
-			if(serializer instanceof IMultiVersionDeserializer) {
+		if(deserializer.getVersion() != serializerVersion) {
+			if(deserializer instanceof IMultiVersionDeserializer) {
 				@SuppressWarnings("unchecked")
-				IDeserializer<T> correctVersionSerializer = ((IMultiVersionDeserializer<T>) serializer).getDeserializer(serializerVersion);
+				IDeserializer<T> correctVersionSerializer = ((IMultiVersionDeserializer<T>) deserializer).getDeserializer(serializerVersion);
 				if(correctVersionSerializer != null) {
 					return correctVersionSerializer.deserialize(this);
 				}
 			}
 			throw new IOException("Can not deserialize object serialization version "+serializerVersion);
 		}
-		return serializer.deserialize(this);
+		return deserializer.deserialize(this);
+	}
+	
+	@Override
+	public <T, C> T readDependent(IDependentDeserializer<T, C> deserializer, C extraContext) throws IOException {
+		int serializerVersion = readInt();
+		if(deserializer.getVersion() != serializerVersion) {
+			if(deserializer instanceof IMultiVersionDependentDeserializer) {
+				@SuppressWarnings("unchecked")
+				IDependentDeserializer<T, ? super C> correctVersionSerializer = ((IMultiVersionDependentDeserializer<T, ? super C>) deserializer).getDependentDeserializer(serializerVersion);
+				if(correctVersionSerializer != null) {
+					return correctVersionSerializer.deserialize(this, extraContext);
+				}
+			}
+			throw new IOException("Can not deserialize object serialization version "+serializerVersion);
+		}
+		return deserializer.deserialize(this, extraContext);
 	}
 	
 	@SuppressWarnings("unchecked")

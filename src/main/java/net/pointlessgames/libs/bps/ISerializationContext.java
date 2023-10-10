@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
+import net.pointlessgames.libs.bps.extracontext.IDependentSerializer;
+
 public interface ISerializationContext {
 	void writeFloat(float f) throws IOException;
 	void writeInt(int i) throws IOException;
@@ -16,6 +18,7 @@ public interface ISerializationContext {
 	void writeByte(byte b) throws IOException;
 	<T> void write(ISerializer<T> serializer, T object) throws IOException;
 	void writeObject(Object object) throws IOException;
+	<T> void writeDependent(IDependentSerializer<T, ?> serializer, T object) throws IOException;
 	
 	default void writeObjectList(List<? extends Object> list) throws IOException {
 		writeInt(list.size());

@@ -7,6 +7,7 @@ import java.util.Map;
 
 import net.pointlessgames.libs.bps.data.IDataWriter;
 import net.pointlessgames.libs.bps.data.OutputStreamDataWriter;
+import net.pointlessgames.libs.bps.extracontext.IDependentSerializer;
 import net.pointlessgames.libs.bps.nested.IInnerType;
 import net.pointlessgames.libs.bps.nested.IOuterType;
 import net.pointlessgames.libs.bps.nested.InnerTypeMarker;
@@ -93,6 +94,12 @@ public class SerializationContext implements ISerializationContext {
 
 	@Override
 	public <T> void write(ISerializer<T> serializer, T object) throws IOException {
+		writeInt(serializer.getVersion());
+		serializer.serialize(this, object);
+	}
+	
+	@Override
+	public <T> void writeDependent(IDependentSerializer<T, ?> serializer, T object) throws IOException {
 		writeInt(serializer.getVersion());
 		serializer.serialize(this, object);
 	}
