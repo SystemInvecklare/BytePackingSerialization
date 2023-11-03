@@ -33,6 +33,10 @@ public class TypeRegistry implements ISerializer<Object> {
 		register(id, InnerTypeMarker.class, Serializers.singleton(InnerTypeMarker.INSTANCE));
 	}
 	
+	public void registerClass(int id) {
+		register(id, Class.class, Serializers.map(Serializers.INT, this::getType, this::getId));
+	}
+	
 	public <T> void register(int id, Class<T> type, ISerializer<T> serializer) {
 		assertNotDoNotSerialize(type);
 		typeSerializers.put(type, serializer);
