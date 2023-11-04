@@ -4,7 +4,7 @@ apply plugin: 'maven-publish'
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 
 ext.group = 'com.github.SystemInvecklare';
-ext.version = '1.4.1';
+ext.version = '1.5';
 
 group = ext.group
 version = ext.version
