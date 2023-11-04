@@ -1,6 +1,8 @@
 package net.pointlessgames.libs.bps;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -292,8 +294,28 @@ public class Serializers {
 			}
 		};
 	}
+	
+	public static <F, T> ISerializer<T> mapLazy(Supplier<ISerializer<F>> serializer, Function<F, T> mapping, Function<T, F> comapping) {
+		if(serializer == null || mapping == null || comapping == null) {
+			throw new IllegalArgumentException();
+		}
+		return new ISerializer<T>() {
+			@Override
+			public void serialize(ISerializationContext context, T object) throws IOException {
+				serializer.get().serialize(context, comapping.apply(object));
+			}
+			
+			@Override
+			public T deserialize(IDeserializationContext context) throws IOException {
+				return mapping.apply(serializer.get().deserialize(context));
+			}
+		};
+	}
  
 	public static <F, T> ISerializer<T> map(ISerializer<F> serializer, Function<F, T> mapping, Function<T, F> comapping) {
+		if(serializer == null || mapping == null || comapping == null) {
+			throw new IllegalArgumentException();
+		}
 		return new ISerializer<T>() {
 			@Override
 			public void serialize(ISerializationContext context, T object) throws IOException {
@@ -325,6 +347,52 @@ public class Serializers {
 				if(object.isPresent()) {
 					context.write(serializer, object.get());
 				}
+			}
+		};
+	}
+	
+	public static <T> ISerializer<List<T>> list(ISerializer<T> elementSerializer) {
+		return list(elementSerializer, 0);
+	}
+	
+	public static <T> ISerializer<List<T>> list(ISerializer<T> elementSerializer, int version) {
+		return new ISerializer<List<T>>() {
+			@Override
+			public List<T> deserialize(IDeserializationContext context) throws IOException {
+				return context.readList(elementSerializer, new ArrayList<>());
+			}
+
+			@Override
+			public void serialize(ISerializationContext context, List<T> object) throws IOException {
+				context.writeList(elementSerializer, object);
+			}
+			
+			@Override
+			public int getVersion() {
+				return version;
+			}
+		};
+	}
+	
+	public static <T> ISerializer<List<T>> objectList(Class<T> elementType) {
+		return objectList(elementType, 0);
+	}
+	
+	public static <T> ISerializer<List<T>> objectList(Class<T> elementType, int version) {
+		return new ISerializer<List<T>>() {
+			@Override
+			public List<T> deserialize(IDeserializationContext context) throws IOException {
+				return context.readObjectList(elementType, new ArrayList<>());
+			}
+
+			@Override
+			public void serialize(ISerializationContext context, List<T> object) throws IOException {
+				context.writeObjectList(object);
+			}
+			
+			@Override
+			public int getVersion() {
+				return version;
 			}
 		};
 	}

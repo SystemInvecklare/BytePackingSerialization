@@ -164,32 +164,45 @@ public class DeserializationContext implements IDeserializationContext {
 			objectMap.put(id, unfinishedObject);
 			object = read(objectDeserializer);
 			if(object == InnerTypeMarker.INSTANCE) {
-				readObject(IOuterType.class, new UnsafeConsumer<IOuterType, IOException>() {
-					@Override
-					public void accept(IOuterType outer) throws IOException {
-						IInnerType inner = outer.deserializeInner(DeserializationContext.this);
-						objectMap.put(id, inner);
-						unfinishedObject.onFinished((T) inner);
-						consumer.accept((T) inner);
-					}
-				}.runtimeException(IOException.class));
+				readObject(IOuterType.class, new DeferredInnerTypeDeserialization<>(outer -> {
+					IInnerType inner = outer.deserializeInner(DeserializationContext.this);
+					objectMap.put(id, inner);
+					unfinishedObject.onFinished((T) inner);
+					consumer.accept((T) inner);
+				}));
 			} else {
 				objectMap.put(id, object);
 				unfinishedObject.onFinished((T) object);
 				consumer.accept((T) object);
 			}
 		} else if(object instanceof UnfinishedObject) {
-			((UnfinishedObject<T>) object).consumers.add(consumer);
+			if(consumer instanceof DeferredInnerTypeDeserialization) {
+				((UnfinishedObject<T>) object).deferredInnerTypeDeserializations.add((DeferredInnerTypeDeserialization<T>) consumer);
+			} else {
+				((UnfinishedObject<T>) object).consumers.add(consumer);
+			}
 		} else {
 			consumer.accept((T) object);
 		}
 	}
 	
 	private static class UnfinishedObject<T> {
+		private final List<DeferredInnerTypeDeserialization<T>> deferredInnerTypeDeserializations = new ArrayList<DeferredInnerTypeDeserialization<T>>();
 		private final List<Consumer<T>> consumers = new ArrayList<Consumer<T>>();
 
 		public void onFinished(T object) {
 			RuntimeException exception = null;
+			for(DeferredInnerTypeDeserialization<T> innerTypeDeserialization : deferredInnerTypeDeserializations) {
+				try {
+					innerTypeDeserialization.onOuterType((IOuterType) object);
+				} catch(IOException e) {
+					if(exception == null) {
+						exception = new RuntimeException(e);
+					} else {
+						exception.addSuppressed(e);
+					}
+				}
+			}
 			for(Consumer<T> consumer : consumers) {
 				try {
 					consumer.accept(object);
@@ -204,6 +217,27 @@ public class DeserializationContext implements IDeserializationContext {
 			if(exception != null) {
 				throw exception;
 			}
+		}
+	}
+	
+	private static class DeferredInnerTypeDeserialization<T> implements Consumer<T> {
+		private final UnsafeConsumer<IOuterType, IOException> wrappedConsumer;
+
+		public DeferredInnerTypeDeserialization(UnsafeConsumer<IOuterType, IOException> wrappedConsumer) {
+			this.wrappedConsumer = wrappedConsumer;
+		}
+
+		@Override
+		public void accept(T t) {
+			try {
+				onOuterType((IOuterType) t);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
+
+		public void onOuterType(IOuterType object) throws IOException {
+			wrappedConsumer.accept(object);
 		}
 	}
 }

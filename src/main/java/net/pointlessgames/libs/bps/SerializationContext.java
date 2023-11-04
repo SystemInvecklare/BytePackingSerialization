@@ -2,12 +2,17 @@ package net.pointlessgames.libs.bps;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import net.pointlessgames.libs.bps.data.IDataWriter;
 import net.pointlessgames.libs.bps.data.OutputStreamDataWriter;
 import net.pointlessgames.libs.bps.extracontext.IDependentSerializer;
+import net.pointlessgames.libs.bps.functional.UnsafeConsumer;
 import net.pointlessgames.libs.bps.nested.IInnerType;
 import net.pointlessgames.libs.bps.nested.IOuterType;
 import net.pointlessgames.libs.bps.nested.InnerTypeMarker;
@@ -16,6 +21,8 @@ public class SerializationContext implements ISerializationContext {
 	private final IDataWriter out;
 	private final ISerializer<Object> objectSerializer;
 	private final Map<Object, Integer> objectMap = new HashMap<Object, Integer>();
+	private final Set<Object> objectsInMidSerialization = new HashSet<>();
+	private final Map<IOuterType, List<UnsafeConsumer<IOuterType, IOException>>> deferredInnerTypeSerializations = new HashMap<>();
 	private int nextId = 0;
 	
 	public SerializationContext(OutputStream stream, ISerializer<Object> objectSerializer) {
@@ -112,13 +119,33 @@ public class SerializationContext implements ISerializationContext {
 			id = nextId++;
 			objectMap.put(object, id);
 			writeInt(id);
+			objectsInMidSerialization.add(object);
 			if(object instanceof IInnerType) {
 				IOuterType outerType = ((IInnerType) object).getOuterObject();
 				write(objectSerializer, InnerTypeMarker.INSTANCE);
 				writeObject(outerType);
-				outerType.serializeInner(this, (IInnerType) object);
+				if(objectsInMidSerialization.contains(outerType)) {
+						List<UnsafeConsumer<IOuterType, IOException>> outerFinishedListeners = deferredInnerTypeSerializations.get(outerType);
+						if(outerFinishedListeners == null) {
+							outerFinishedListeners = new ArrayList<UnsafeConsumer<IOuterType,IOException>>();
+							deferredInnerTypeSerializations.put(outerType, outerFinishedListeners);
+						}
+						outerFinishedListeners.add(outer -> { 
+							outer.serializeInner(this, (IInnerType) object);
+						});
+				} else {
+					outerType.serializeInner(this, (IInnerType) object);
+				}
 			} else {
 				write(objectSerializer, object);
+			}
+			objectsInMidSerialization.remove(object);
+			List<UnsafeConsumer<IOuterType, IOException>> onFinishedListeners = deferredInnerTypeSerializations.remove(object);
+			if(onFinishedListeners != null) {
+				IOuterType outer = (IOuterType) object;
+				for(UnsafeConsumer<IOuterType, IOException> onFinishedListener : onFinishedListeners) {
+					onFinishedListener.accept(outer);
+				}
 			}
 		} else {
 			writeInt(id);
