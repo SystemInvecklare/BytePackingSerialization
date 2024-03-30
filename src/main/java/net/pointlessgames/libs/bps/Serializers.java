@@ -241,7 +241,6 @@ public class Serializers {
 		}
 	};
 	
-
 	public static <T> ISerializer<T> empty(Supplier<T> factory) {
 		return new ISerializer<T>() {
 			@Override
@@ -395,5 +394,46 @@ public class Serializers {
 				return version;
 			}
 		};
+	}
+
+	public static <T> ISerializer<T> lazy(Supplier<ISerializer<T>> supplier) {
+		class LazyFetchSerializer implements ISerializer<T>, IMultiVersionDeserializer<T> {
+			private final Supplier<ISerializer<T>> supplier;
+			
+			public LazyFetchSerializer(Supplier<ISerializer<T>> supplier) {
+				this.supplier = supplier;
+			}
+
+			@Override
+			public T deserialize(IDeserializationContext context) throws IOException {
+				return supplier.get().deserialize(context);
+			}
+
+			@SuppressWarnings("unchecked")
+			@Override
+			public IDeserializer<T> getDeserializer(int version) {
+				ISerializer<T> serializer = supplier.get();
+				if(serializer instanceof IMultiVersionDeserializer) {
+					return ((IMultiVersionDeserializer<T>) serializer).getDeserializer(version);
+				} else {
+					if(serializer.getVersion() == version) {
+						return serializer;
+					} else {
+						return null;
+					}
+				}
+			}
+
+			@Override
+			public void serialize(ISerializationContext context, T object) throws IOException {
+				supplier.get().serialize(context, object);
+			}
+			
+			@Override
+			public int getVersion() {
+				return supplier.get().getVersion();
+			}
+		}
+		return new LazyFetchSerializer(supplier);
 	}
 }
